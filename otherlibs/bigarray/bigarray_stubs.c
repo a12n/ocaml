@@ -47,7 +47,7 @@ static uintnat caml_ba_num_elts(struct caml_ba_array * b)
 /* Size in bytes of a bigarray element, indexed by bigarray kind */
 
 int caml_ba_element_size[] =
-{ 4 /*FLOAT32*/, 8 /*FLOAT64*/,
+{ 2 /*FLOAT16*/, 4 /*FLOAT32*/, 8 /*FLOAT64*/,
   1 /*SINT8*/, 1 /*UINT8*/,
   2 /*SINT16*/, 2 /*UINT16*/,
   4 /*INT32*/, 8 /*INT64*/,
@@ -268,6 +268,8 @@ value caml_ba_get_N(value vb, value * vind, int nind)
   switch ((b->flags) & CAML_BA_KIND_MASK) {
   default:
     Assert(0);
+  case CAML_BA_FLOAT16:
+    return caml_copy_double(float16_to_float32(((uint16 *) b->data)[offset]));
   case CAML_BA_FLOAT32:
     return caml_copy_double(((float *) b->data)[offset]);
   case CAML_BA_FLOAT64:
@@ -437,6 +439,9 @@ static value caml_ba_set_aux(value vb, value * vind, intnat nind, value newval)
   switch (b->flags & CAML_BA_KIND_MASK) {
   default:
     Assert(0);
+  case CAML_BA_FLOAT16:
+    ((uint16 *) b->data)[offset] = float16_of_float32(Double_val(newval));
+    break;
   case CAML_BA_FLOAT32:
     ((float *) b->data)[offset] = Double_val(newval); break;
   case CAML_BA_FLOAT64:
@@ -742,6 +747,7 @@ static int caml_ba_compare(value v1, value v2)
     return 0; \
   }
 
+  /* TODO: CAML_BA_FLOAT16 */
   switch (b1->flags & CAML_BA_KIND_MASK) {
   case CAML_BA_COMPLEX32:
     num_elts *= 2; /*fallthrough*/
@@ -851,6 +857,13 @@ static intnat caml_ba_hash(value v)
     for (n = 0; n < num_elts; n++, p++) h = caml_hash_mix_float(h, *p);
     break;
   }
+  case CAML_BA_FLOAT16: {
+    uint16 * p = b->data;
+    if (num_elts > 128) num_elts = 128;
+    for (n = 0; n < num_elts; n++, p++)
+        h = caml_hash_mix_float(h, float16_to_float32(*p));
+    break;
+  }
   case CAML_BA_COMPLEX64:
     num_elts *= 2;              /* fallthrough */
   case CAML_BA_FLOAT64:
@@ -915,6 +928,7 @@ static void caml_ba_serialize(value v,
     caml_serialize_block_1(b->data, num_elts); break;
   case CAML_BA_SINT16:
   case CAML_BA_UINT16:
+  case CAML_BA_FLOAT16:
     caml_serialize_block_2(b->data, num_elts); break;
   case CAML_BA_FLOAT32:
   case CAML_BA_INT32:
@@ -988,6 +1002,7 @@ uintnat caml_ba_deserialize(void * dst)
     caml_deserialize_block_1(b->data, num_elts); break;
   case CAML_BA_SINT16:
   case CAML_BA_UINT16:
+  case CAML_BA_FLOAT16:
     caml_deserialize_block_2(b->data, num_elts); break;
   case CAML_BA_FLOAT32:
   case CAML_BA_INT32:
@@ -1187,6 +1202,12 @@ CAMLprim value caml_ba_fill(value vb, value vinit)
   switch (b->flags & CAML_BA_KIND_MASK) {
   default:
     Assert(0);
+  case CAML_BA_FLOAT16: {
+    int init = float16_of_float32(Double_val(vinit));
+    uint16 * p;
+    FILL_SCALAR_LOOP;
+    break;
+  }
   case CAML_BA_FLOAT32: {
     float init = Double_val(vinit);
     float * p;
