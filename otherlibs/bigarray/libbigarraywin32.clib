@@ -1,1 +1,1 @@
-bigarray_stubs.o mmap_win32.o
+bigarray_stubs.o float16.o mmap_win32.o

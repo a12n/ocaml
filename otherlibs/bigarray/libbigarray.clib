@@ -1,1 +1,1 @@
-bigarray_stubs.o mmap_unix.o
+bigarray_stubs.o float16.o mmap_unix.o
