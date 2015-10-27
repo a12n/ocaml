@@ -18,7 +18,7 @@ convertmantissa(uint32_t i)
 {
     uint32_t m = i << 13;       /* Zero pad mantissa bits */
     uint32_t e = 0;             /* Zero exponent */
-    while(!(m & 0x00800000)) {  /* While not normalized */
+    while (!(m & 0x00800000)) { /* While not normalized */
         e -= 0x00800000;        /* Decrement exponent (1<<23) */
         m <<= 1;                /* Shift mantissa */
     }
@@ -53,7 +53,7 @@ float16_init(void)
 
     /* Generate tables for single to half conversion */
 
-    for(i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
         int e;
 
         e = i - 127;
