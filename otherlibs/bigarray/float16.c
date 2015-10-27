@@ -10,6 +10,9 @@ static unsigned int mantissatable[2048];
 static unsigned int exponenttable[64];
 static unsigned short offsettable[64];
 
+static unsigned short basetable[512];
+static unsigned char shifttable[512];
+
 static unsigned int
 convertmantissa(unsigned int i)
 {
