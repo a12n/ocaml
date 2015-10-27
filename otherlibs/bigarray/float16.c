@@ -87,10 +87,12 @@ float16_init(void)
 }
 
 caml_ba_uint16
-float16_of_float32(float)
+float16_of_float32(float f)
 {
-    /* TODO */
-    return 0;
+    union { float f; unsigned int i; } v;
+    v.f = f;
+    return basetable[(v.i >> 23) & 0x1ff] +
+        ((v.i & 0x007fffff) >> shifttable[(v.i >> 23) & 0x1ff]);
 }
 
 float
