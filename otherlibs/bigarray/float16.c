@@ -6,18 +6,18 @@
 
 #include "float16.h"
 
-static unsigned int mantissatable[2048];
-static unsigned int exponenttable[64];
-static unsigned short offsettable[64];
+static uint32_t mantissatable[2048];
+static uint32_t exponenttable[64];
+static caml_ba_uint16 offsettable[64];
 
-static unsigned short basetable[512];
+static caml_ba_uint16 basetable[512];
 static unsigned char shifttable[512];
 
-static unsigned int
-convertmantissa(unsigned int i)
+static uint32_t
+convertmantissa(uint32_t i)
 {
-    unsigned int m = i << 13;   /* Zero pad mantissa bits */
-    unsigned int e = 0;         /* Zero exponent */
+    uint32_t m = i << 13;       /* Zero pad mantissa bits */
+    uint32_t e = 0;             /* Zero exponent */
     while(!(m & 0x00800000)) {  /* While not normalized */
         e -= 0x00800000;        /* Decrement exponent (1<<23) */
         m <<= 1;                /* Shift mantissa */
@@ -89,7 +89,7 @@ float16_init(void)
 caml_ba_uint16
 float16_of_float32(float f)
 {
-    union { float f; unsigned int i; } v;
+    union { float f; uint32_t i; } v;
     v.f = f;
     return basetable[(v.i >> 23) & 0x1ff] +
         ((v.i & 0x007fffff) >> shifttable[(v.i >> 23) & 0x1ff]);
