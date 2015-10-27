@@ -54,8 +54,8 @@ float16_of_float32(float)
 }
 
 float
-float16_to_float32(caml_ba_uint16)
+float16_to_float32(caml_ba_uint16 h)
 {
-    /* TODO */
-    return 0.0f;
+    return mantissatable[offsettable[h >> 10] + (h & 0x3ff)] +
+        exponenttable[h >> 10];
 }
