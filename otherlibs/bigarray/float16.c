@@ -29,6 +29,8 @@ float16_init(void)
 {
     int i;
 
+    /* Generate tables for half to single conversion */
+
     mantissatable[0] = 0;
     for (i = 1; i < 1024; i++) mantissatable[i] = convertmantissa(i);
     for (; i < 2048; i++) mantissatable[i] = 0x38000000 + ((i - 1024) << 13);
@@ -44,6 +46,40 @@ float16_init(void)
     offsettable[32] = 0;
     for (i = 1; i < 32; i++) offsettable[i] = 1024;
     for (; i < 64; i++) offsettable[i] = 1024;
+
+    /* Generate tables for single to half conversion */
+
+    for(i = 0; i < 256; i++) {
+        int e;
+
+        e = i - 127;
+        if (e < - 24) {         /* Very small numbers map to zero */
+            basetable[i | 0x000] = 0x0000;
+            basetable[i | 0x100] = 0x8000;
+            shifttable[i | 0x000] = 24;
+            shifttable[i | 0x100] = 24;
+        } else if (e < -14) {   /* Small numbers map to denorms */
+            basetable[i | 0x000] = (0x0400 >> (-e - 14));
+            basetable[i | 0x100] = (0x0400 >> (-e - 14)) | 0x8000;
+            shifttable[i | 0x000] = -e - 1;
+            shifttable[i | 0x100] = -e - 1;
+        } else if (e <= 15) { /* Normal numbers just lose precision */
+            basetable[i | 0x000] = ((e + 15) << 10);
+            basetable[i | 0x100] = ((e + 15) << 10) | 0x8000;
+            shifttable[i | 0x000] = 13;
+            shifttable[i | 0x100] = 13;
+        } else if (e < 128) {   /* Large numbers map to Infinity */
+            basetable[i | 0x000] = 0x7C00;
+            basetable[i | 0x100] = 0xFC00;
+            shifttable[i | 0x000] = 24;
+            shifttable[i | 0x100] = 24;
+        } else {      /* Infinity and NaN's stay Infinity and NaN's */
+            basetable[i | 0x000] = 0x7C00;
+            basetable[i | 0x100] = 0xFC00;
+            shifttable[i | 0x000] = 13;
+            shifttable[i | 0x100] = 13;
+        }
+    }
 }
 
 caml_ba_uint16
