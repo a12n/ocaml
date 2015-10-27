@@ -16,6 +16,7 @@
 #include <string.h>
 #include "caml/alloc.h"
 #include "bigarray.h"
+#include "float16.h"
 #include "caml/custom.h"
 #include "caml/fail.h"
 #include "caml/intext.h"
@@ -1296,5 +1297,6 @@ CAMLprim value caml_ba_reshape(value vb, value vdim)
 CAMLprim value caml_ba_init(value unit)
 {
   caml_register_custom_operations(&caml_ba_ops);
+  float16_init();
   return Val_unit;
 }
