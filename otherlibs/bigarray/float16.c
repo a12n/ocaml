@@ -98,6 +98,8 @@ float16_of_float32(float f)
 float
 float16_to_float32(caml_ba_uint16 h)
 {
-    return mantissatable[offsettable[h >> 10] + (h & 0x3ff)] +
+    union { float f; uint32_t i; } v;
+    v.i = mantissatable[offsettable[h >> 10] + (h & 0x3ff)] +
         exponenttable[h >> 10];
+    return v.f;
 }
